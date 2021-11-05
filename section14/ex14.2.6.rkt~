@@ -1,0 +1,69 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname ex14.2.6) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+;; A binary-search-tree (short: BST) is a BT:
+;; 1. false is always a BST;
+;; 2. (make-node soc pn lft rgt) is a BST if
+;;    a. lft and rgt are BSTs,
+;;    b. all ssn numbers in lft are smaller than soc, and
+;;    c. all ssn numbers in rgt are smaller than soc.
+(define-struct node (ssn name left right))
+
+(define BST1 (make-node 63
+                        'e
+                        (make-node 29
+                                   'd
+                                   (make-node 15
+                                              'b
+                                              (make-node 10 'a false false)
+                                              (make-node 24 'c false false))
+                                   false)
+                        (make-node 89
+                                   'g
+                                   (make-node 77 'f false false)
+                                   (make-node 95 'h false (make-node 99 'i false false)))))
+
+;; fun-for-bst : bst -> ???
+#;
+(define (fun-for-bst a-bst)
+  (cond
+    [(false? a-bst) ...]
+    [else
+     ... (node-ssn a-bst) ...
+     ... (node-name a-bst) ...
+     ... (fun-for-bst (node-left a-bst)) ...
+     ... (fun-for-bst (node-right a-bst)) ...]))
+
+;; create-bst : bst number symbol -> bst
+;; produces given bst with the given info inserted in one of its false subtrees
+
+(define (create-bst a-bst n s)
+  (cond [(false? a-bst) (make-node n s false false)]
+        [(< n (node-ssn a-bst))
+         (make-node (node-ssn a-bst)
+                    (node-name a-bst)
+                    (create-bst (node-left a-bst) n s)
+                    (node-right a-bst))]
+        [(> n (node-ssn a-bst))
+         (make-node (node-ssn a-bst)
+                    (node-name a-bst)
+                    (node-left a-bst)
+                    (create-bst (node-right a-bst) n s))]
+        [else (make-node (node-ssn a-bst) s false false)]))
+
+;; A list-of-number/name is either
+;; 1. empty or
+;; 2. (cons (list ssn nom) lonn)
+;;    where ssn is a number, nom is a symbol
+;;    and lonn is a list-of-number/name
+(check-expect (create-bst-from-list (list
+                                     (list 99 'i) (list 77 'f) (list 24 'c)
+                                     (list 10 'a) (list 95 'h) (list 15 'b)
+                                     (list 89 'g) (list 29 'd) (list 63 'e)))
+              BST1)
+
+(define (create-bst-from-list lonn)
+  (cond [(empty? lonn) false]
+        [else (create-bst (create-bst-from-list (rest lonn))
+                          (first (first lonn))
+                          (first (rest (first lonn))))]))

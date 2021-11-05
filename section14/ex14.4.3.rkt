@@ -1,0 +1,45 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname ex14.4.3) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+(define-struct add (left right))
+(define-struct mul (left right))
+
+; 1. (+ 10 -10)
+(define S1 (make-add 10 -10))
+; 2. (+ (* 20 3) 33)
+(define S2 (make-add (make-mul 20 3) 33))
+; 3. (* 3.14 (* r r))
+(define S3 (make-mul 3.14 (make-mul 'r 'r)))
+; 4. (+ (* 9/5 c) 32)
+(define S4 (make-add (make-mul 9/5 'c) 32))
+; 5. (+ (* 3.14 (* o o)) (* 3.14 (* i i)))
+(define S5 (make-add (make-mul 3.14 (make-mul 'o 'o)) (make-mul 3.14 (make-mul 'i 'i))))
+
+;; evaluate-expression : scheme-exp -> number
+;; computes a numeric expression and returns its value
+(check-expect (evaluate-expression S1) 0)
+(check-expect (evaluate-expression S2) 93)
+
+(define (evaluate-expression sch-exp)
+  (cond ((number? sch-exp) sch-exp)
+        ((and (add? sch-exp) (number? (add-left sch-exp)) (number? (add-right sch-exp)))
+         (+ (add-left sch-exp) (add-right sch-exp)))
+        ((and (add? sch-exp) (numeric? (add-left sch-exp)) (number? (add-right sch-exp)))
+         (+ (evaluate-expression (add-left sch-exp)) (add-right sch-exp)))
+        ((and (add? sch-exp) (number? (add-left sch-exp)) (numeric? (add-right sch-exp)))
+         (+ (add-left sch-exp) (evaluate-expression (add-right sch-exp))))
+        ((and (mul? sch-exp) (number? (mul-left sch-exp)) (number? (mul-right sch-exp)))
+         (* (mul-left sch-exp) (mul-right sch-exp)))
+        ((and (mul? sch-exp) (numeric? (mul-left sch-exp)) (number? (mul-right sch-exp)))
+         (* (evaluate-expression (mul-left sch-exp)) (mul-right sch-exp)))
+        ((and (mul? sch-exp) (number? (mul-left sch-exp)) (numeric? (mul-right sch-exp)))
+         (* (mul-left sch-exp) (evaluate-expression (mul-right sch-exp))))
+        (else (error "Not a numeric expression"))))
+
+(define (numeric? sch-exp)
+  (cond ((number? sch-exp) #t)
+        ((add? sch-exp) (and (numeric? (add-left sch-exp))
+                             (numeric? (add-right sch-exp))))
+        ((mul? sch-exp) (and (numeric? (mul-left sch-exp))
+                             (numeric? (mul-right sch-exp))))
+        (else #f)))

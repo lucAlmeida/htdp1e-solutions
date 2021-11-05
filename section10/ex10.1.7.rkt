@@ -1,0 +1,12 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname ex10.1.7) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+;; recall : symbol list-of-symbol -> list-of-symbol
+;; produces list of names with all toys except the chosen one
+(check-expect (recall 'robot (cons 'robot (cons 'doll (cons 'dress empty))))
+              (cons 'doll (cons 'dress empty)))
+
+(define (recall ty lon)
+  (cond [(empty? lon) empty]
+        [(symbol=? (first lon) ty) (recall ty (rest lon))]
+        [else (cons (first lon) (recall ty (rest lon)))]))
